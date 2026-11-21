@@ -4,7 +4,7 @@ from app.pipeline import compute
 def test_refunds_use_published_show_share_and_leave_other_shows_intact(sample):
     rows = {row['show']: row for row in sample['funding']['ledger'] if row['ticket'] == '00107'}
     assert [(rows[show]['allocated_cents'], rows[show]['payable_cents']) for show in ('A-LAKE', 'B-RAIN', 'C-DUSK')] == [
-        (3334, 3334), (3334, 3334), (3333, 0),
+        (3334, 834), (3334, 834), (3333, 0),
     ]
     assert rows['C-DUSK']['refunded_cents'] == 3333
 
@@ -12,7 +12,7 @@ def test_refunds_use_published_show_share_and_leave_other_shows_intact(sample):
 def test_remaining_cap_is_cumulative_insufficient_rows_do_not_consume_it(sample):
     approved = [row for row in sample['refunds'] if row['ticket'] == '00107']
     assert [(row['refund_id'], row['reversal_cents'], row['cumulative_cents'], row['remaining_cents']) for row in approved] == [
-        ('R107-01', -1000, 1000, 2333), ('R107-03', -2333, 3333, 0),
+        ('R107-01', -1000, 1000, 2333), ('R107-03', -2333, 3333, 0), ('R107-WHOLE', -5000, 8333, 1668),
     ]
     caps = {row['key']: row['detail']['available_cents'] for row in sample['quarantine'] if row['code'] == 'REFUND_CAP_EXCEEDED'}
     assert caps == {'R107-02': 2333, 'R107-04': 0}

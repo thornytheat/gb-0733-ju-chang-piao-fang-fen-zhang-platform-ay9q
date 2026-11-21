@@ -10,9 +10,9 @@
 | M2 套票权益 | 查原场次资格、票场权重及冲突 | `GET /api/rights/{run_id}` | `app/modules/m2_rights/shows.py` `app/modules/m2_rights/service.py` | `tests/test_rights.py` |
 | M3 入场核销 | 查最早通过的核销与拦截依据 | `GET /api/scans/{run_id}` | `app/modules/m3_scans/service.py` | `tests/test_scans.py` |
 | M4 权重分账 | 按票复核分角尾差和未分配款 | `GET /api/allocation/{run_id}` | `app/modules/m4_allocation/rules.py` `app/modules/m4_allocation/service.py` | `tests/test_allocation.py` |
-| M5 退款冲正 | 逐笔核对停演冲正、限额与超领原因 | `GET /api/refunds/{run_id}` | `app/modules/m5_refunds/rules.py` `app/modules/m5_refunds/service.py` | `tests/test_refunds.py` |
+| M5 退款冲正 | 逐笔核对停演冲正、整单落场、限额与超领原因 | `GET /api/refunds/{run_id}` | `app/modules/m5_refunds/rules.py` `app/modules/m5_refunds/service.py` | `tests/test_refunds.py` `tests/test_whole_order_refunds.py` |
 | M6 场馆勾稽 | 对照双账并按票、场馆、源文件复核 | `GET /api/reconcile/{run_id}` | `app/modules/m6_reconcile/ledger.py` `app/modules/m6_reconcile/service.py` | `tests/test_reconcile.py` |
-| M7 结算凭证 | 查看原因码分布与源清单，下载可重算凭证 | `GET /api/evidence/{run_id}`、`GET /api/evidence/{run_id}/export` | `app/modules/m7_evidence/bundle.py` `app/modules/m7_evidence/csv_out.py` | `tests/test_evidence.py` |
+| M7 结算凭证 | 查看原因码分布、本期退款落场，下载可重算凭证与退款 CSV | `GET /api/evidence/{run_id}`、`GET /api/evidence/{run_id}/export`、`GET /api/evidence/{run_id}/refunds.csv` | `app/modules/m7_evidence/bundle.py` `app/modules/m7_evidence/voucher.py` `app/modules/m7_evidence/csv_out.py` | `tests/test_evidence.py` `tests/test_whole_order_refunds.py` |
 
 ## 陷阱登记
 
@@ -34,6 +34,9 @@
 | TRAP-23 | scans.csv 含起点和关闭时刻 | 边界二次入账 | 半开核销窗 | `app/modules/m3_scans/service.py` | `tests/test_scans.py::test_window_start_is_inclusive_and_close_exclusive` |
 | TRAP-24 | tickets.csv 的 00107 拆给相同权重 | 三场取整后少分或多分 | 最大余数与场次键裁决 | `app/modules/m4_allocation/rules.py` | `tests/test_allocation.py::test_equal_remainders_use_stable_show_key_and_conserve` |
 | TRAP-26 | 以 refunds.csv 已发布样例为基准提交仅表头快照 | 原退款被旧表清除 | 校验已过账冲正都保留 | `app/modules/m5_refunds/service.py` | `tests/test_refunds.py::test_previous_approval_cannot_be_erased_by_stale_submission` |
+| TRAP-27 | 渠道整单退款只给票码和退款额，不说退掉哪一场 | 整笔压给某个未演场次，后面的场馆替前面的场馆买单 | 按原分账比例逐场落点，单场不越过原分账余额，超额只在仍有余量的场次间再分 | `app/modules/m5_refunds/rules.py` | `tests/test_whole_order_refunds.py::test_whole_order_lands_on_every_show_in_proportion_and_respects_each_cap` |
+| TRAP-28 | 整单退款重试换单号重送 | 同一退款被扣两次 | 同票、同刻、同额只入账一次，其余记 `REFUND_RETRY` | `app/modules/m5_refunds/service.py` | `tests/test_whole_order_refunds.py::test_duplicate_channel_retry_with_new_id_is_not_charged_twice` |
+| TRAP-29 | 已演出场次被整单退款冲回 | 场馆应收悄悄变少，无人向该馆追回 | 逐馆汇总待追回金额，凭证按场显示冲正与余限 | `app/modules/m6_reconcile/service.py` | `tests/test_whole_order_refunds.py::test_home_shows_refund_landings_venue_net_and_clawback` |
 
 ## 对账规则
 

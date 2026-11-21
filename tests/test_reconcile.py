@@ -4,8 +4,9 @@ from app.modules.m6_reconcile.service import reconcile
 def test_net_receipts_equal_venue_payable_and_pending(sample):
     totals = sample['funding']['totals']
     assert totals == {'paid_cents': 157746, 'allocated_cents': 154548, 'unallocated_cents': 3198,
-                      'refunded_cents': 5583, 'net_cents': 152163, 'payable_cents': 135546,
-                      'unsettled_cents': 16617, 'difference_cents': 0, 'gap_cents': 19002,
+                      'refunded_cents': 10583, 'net_cents': 147163, 'payable_cents': 130546,
+                      'unsettled_cents': 16617, 'difference_cents': 0, 'gap_cents': 24002,
+                      'clawback_cents': 5000, 'whole_refund_cents': 5000, 'whole_refund_count': 1,
                       'scan_count': 7, 'ticket_count': 12}
     assert totals['net_cents'] == totals['payable_cents'] + totals['unsettled_cents']
 
@@ -17,13 +18,13 @@ def test_show_gap_is_explained_even_when_accounting_difference_is_zero(sample):
 
 def test_two_shows_are_aggregated_into_same_venue(sample):
     venue = next(row for row in sample['funding']['venues'] if row['venue'] == '海棠剧场')
-    assert (venue['shows'], venue['payable_cents'], venue['allocated_cents'], venue['scan_count']) == (2, 6756, 10256, 3)
+    assert (venue['shows'], venue['payable_cents'], venue['allocated_cents'], venue['scan_count']) == (2, 4256, 10256, 3)
 
 
 def test_source_rows_reconcile_across_all_five_files(sample):
     sources = sample['funding']['sources']
-    assert sum(row['accepted'] for row in sources) == 43
-    assert sum(row['rows'] for row in sources) == 83
+    assert sum(row['accepted'] for row in sources) == 44
+    assert sum(row['rows'] for row in sources) == 84
     assert sum(row['isolated'] for row in sources) == 33
     assert sum(row['headers'] + row['blank'] for row in sources) == 7
     assert all(row['difference'] == 0 for row in sources)
@@ -33,7 +34,7 @@ def test_each_ticket_preserves_its_own_balance_not_just_global_sum(sample):
     tickets = {row['ticket']: row for row in sample['funding']['tickets']}
     assert all(row['difference_cents'] == 0 for row in tickets.values())
     assert (tickets['00109']['payable_cents'], tickets['00109']['unsettled_cents']) == (0, 1999)
-    assert (tickets['00107']['net_cents'], tickets['00107']['unsettled_cents']) == (6668, 0)
+    assert (tickets['00107']['net_cents'], tickets['00107']['unsettled_cents']) == (1668, 0)
 
 
 def test_reconcile_detects_shift_between_two_tickets_even_if_total_matches(sample):

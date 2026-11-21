@@ -47,11 +47,18 @@
           <output id="run-message" aria-live="polite">{{ notice }}</output>
         </div>
         <div class="kpis" aria-label="票房合计">
-          {% for field, label in [('paid_cents', '实收票款'), ('refunded_cents', '停演退款'), ('net_cents', '联票净收款'), ('payable_cents', '场馆应收'), ('unsettled_cents', '未结余额')] %}
+          {% for field, label in [('paid_cents', '实收票款'), ('refunded_cents', '已入账退款'), ('net_cents', '联票净收款'), ('payable_cents', '场馆应收'), ('unsettled_cents', '未结余额')] %}
           <div class="kpi{% if field == 'net_cents' %} kpi--focus{% endif %}"><span>{{ label }}</span><strong><small>¥</small>{{ funding.totals[field] | money }}</strong></div>
           {% endfor %}
         </div>
+        <div class="kpis kpis--secondary" aria-label="退款追回">
+          {% for field, label in [('whole_refund_cents', '整单退款'), ('clawback_cents', '待追回'), ('gap_cents', '账面差额')] %}
+          <div class="kpi{% if field == 'clawback_cents' %} kpi--focus{% endif %}"><span>{{ label }}</span><strong><small>¥</small>{{ funding.totals[field] | default(0) | money }}</strong></div>
+          {% endfor %}
+          <div class="kpi kpi--link"><span>本期退款凭证</span><a class="btn" href="/api/evidence/{{ manifest.run_id }}/refunds.csv" download>下载 CSV <span aria-hidden="true">↓</span></a></div>
+        </div>
         {% include 'ledger.html' %}
+        {% include 'refunds.html' %}
         {% include 'evidence.html' %}
       </main>
       <footer class="statusbar">

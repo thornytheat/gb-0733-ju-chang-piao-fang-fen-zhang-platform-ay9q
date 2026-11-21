@@ -36,6 +36,7 @@ REASONS = {
     'SCAN_AFTER_CANCELLATION': '停演生效后无法核销',
     'REFUND_ID_DUPLICATE': '同一退款事件重复导出',
     'REFUND_ID_CONFLICT': '同一退款流水号有矛盾的记录',
+    'REFUND_RETRY': '同一整单退款被重复回传，保留首次入账',
     'REFUND_NOT_CANCELLED': '场次未停演，无法做停演冲正',
     'REFUND_TOO_EARLY': '退款时间早于停演或收款',
     'REFUND_NO_ORIGINAL': '该票场组合没有可冲正的原分账',

@@ -48,6 +48,15 @@ code, time, .num, .kpi strong, .balance-strip strong, .statusbar b { font-family
 .show-link small { font-size: 10.5px; color: var(--ink-2); }
 .show-link:hover strong, .show-link[aria-pressed="true"] strong { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; }
 .evidence-title > span { padding-left: 8px; border-left: 1px solid var(--line); }
+.refund-orders, .venue-settlement { min-width: 0; }
+.refund-orders .evidence-scroll, .venue-settlement .evidence-scroll { max-height: 270px; }
+.refund-table .refund-order > * { background: #faf6ff; border-top: 1px solid var(--line); }
+.refund-table .refund-order strong { display: block; font-weight: 700; }
+.refund-table .refund-order small, .refund-table .refund-line small { display: block; color: var(--ink-2); font-size: 10.5px; }
+.refund-table .refund-line > :first-child { padding-left: 20px; }
+.refund-table tbody tr.refund-line:hover { background: var(--panel-2); }
+.kpi--link { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.venue-settlement tfoot :is(td, th) { font-weight: 700; background: var(--panel-2); }
 .isolation-link { text-decoration: none; }
 .panel__head .state--warn { color: var(--warn); }
 .filters :is(input, select), .import-form input { height: 30px; border-radius: var(--radius); background: var(--panel); border: 1px solid var(--line-2); color: var(--ink); padding: 3px 8px; font: inherit; max-width: 100%; }

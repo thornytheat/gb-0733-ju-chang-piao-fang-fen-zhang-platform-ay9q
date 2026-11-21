@@ -28,12 +28,12 @@ python -m pytest -q
 | 套票权益 | 合资格权益、场次状态与冲突行 | `GET /api/rights/{run_id}` |
 | 入场核销 | 有效核销及保留、拒收依据 | `GET /api/scans/{run_id}` |
 | 权重分账 | 原分账、尾差排名与未分配票款 | `GET /api/allocation/{run_id}` |
-| 退款冲正 | 原分账限额、冲正与剩余额度 | `GET /api/refunds/{run_id}` |
+| 退款冲正 | 原分账限额、冲正、整单逐场落点与剩余额度 | `GET /api/refunds/{run_id}` |
 | 场馆勾稽 | 逐票、逐场、逐馆与源行核对 | `GET /api/reconcile/{run_id}` |
-| 结算凭证 | 运行清单、隔离行、凭证 ZIP | `GET /api/evidence/{run_id}` |
+| 结算凭证 | 运行清单、隔离行、本期退款落场、凭证 ZIP 与退款 CSV | `GET /api/evidence/{run_id}` |
 
-各模块读取接口支持 `run_id=sample` 的预览和 `view`、`q`、`show`、`limit`、`offset` 查询。接口文档在 `/docs`。发布接口是 `POST /api/runs/sample` 与 `POST /api/runs`，重跑是 `POST /api/runs/{run_id}/rerun`，下载是 `GET /api/evidence/{run_id}/export`。
+各模块读取接口支持 `run_id=sample` 的预览和 `view`、`q`、`show`、`limit`、`offset` 查询。接口文档在 `/docs`。发布接口是 `POST /api/runs/sample` 与 `POST /api/runs`，重跑是 `POST /api/runs/{run_id}/rerun`，下载整包凭证是 `GET /api/evidence/{run_id}/export`，本期退款凭证是 `GET /api/evidence/{run_id}/refunds.csv`。
 
-单一账册保留首次发布的票款、权益和场次定义。修订用完整快照提交，允许更新核销，新增停演事实和退款。历史批次可重跑或导出，旧批次重跑不会回退当前账册。每个文件限 512 KiB 和 12,000 条逻辑行。本项目覆盖人民币停演退款和整套票按场分账。
+单一账册保留首次发布的票款、权益和场次定义。修订用完整快照提交，允许更新核销，新增停演事实和退款。历史批次可重跑或导出，旧批次重跑不会回退当前账册。每个文件限 512 KiB 和 12,000 条逻辑行。本项目覆盖人民币停演退款和整套票按场分账；渠道整单退款未指明场次时，按原分账比例逐场落点，单场不越过原分账余额。
 
 `app/modules` 放各业务规则，`sample_data` 放本机样例，`tests` 放业务与原子性回归。[规则与样例登记](docs/DEPTH.md)

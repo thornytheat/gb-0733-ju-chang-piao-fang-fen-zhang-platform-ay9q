@@ -39,7 +39,10 @@ def read_source(data, name, stats, isolates):
                 continue
             if header is None:
                 header = tuple(field.strip().lstrip('\ufeff') for field in fields)
-                if len(header) != len(columns) or set(header) != set(columns):
+                missing = set(columns) - set(header)
+                # \u6e20\u9053\u6574\u5355\u9000\u6b3e\u53ea\u56de\u4f20\u7968\u7801\u548c\u9000\u6b3e\u989d\uff0crefunds.csv \u5141\u8bb8\u7701\u7565 show \u5217\u3002
+                optional = {'show'} if name == 'refunds.csv' else set()
+                if len(header) != len(set(header)) or set(header) - set(columns) or missing - optional:
                     raise Problem(422, 'FILE_COLUMNS', {'source': name, 'line': line, 'expected': columns})
                 stats['headers'] += 1
                 continue

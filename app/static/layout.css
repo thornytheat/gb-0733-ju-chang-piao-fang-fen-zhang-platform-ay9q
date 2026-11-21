@@ -17,6 +17,7 @@ h1, h2, h3, p { margin: 0; }
 .batchline output { margin-left: auto; color: var(--ok); }
 .batchline output.is-error { color: var(--bad); }
 .kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.kpis--secondary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .kpi { padding: 11px 13px; min-width: 0; }
 .kpi + .kpi { border-left: 1px solid var(--line); }
 .kpi--focus { background: var(--accent-soft); color: var(--accent-ink); }

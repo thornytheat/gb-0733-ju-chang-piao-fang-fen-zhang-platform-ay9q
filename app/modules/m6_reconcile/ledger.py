@@ -1,11 +1,19 @@
 from collections import Counter
 
 
+def reversal_lines(refund):
+    """按场落点；兼容旧快照里只有单据级 show 的冲正。"""
+    if refund.get('allocations'):
+        return refund['allocations']
+    return [{'ticket': refund['ticket'], 'show': refund['show'], 'reversal_cents': refund['reversal_cents']}]
+
+
 def settlement_rows(publication, shows, scans, refunds):
     accepted = {(scan['ticket'], scan['show']): scan for scan in scans}
     reversed_cents = Counter()
     for refund in refunds:
-        reversed_cents[refund['ticket'], refund['show']] += -refund['reversal_cents']
+        for line in reversal_lines(refund):
+            reversed_cents[line['ticket'], line['show']] += -line['reversal_cents']
     rows = []
     for original in publication['allocations']:
         pair = (original['ticket'], original['show'])

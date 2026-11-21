@@ -18,7 +18,7 @@ def test_download_links_manifest_original_and_inputs(client, files):
     with archive:
         manifest = json.loads(archive.read('manifest.json'))
         assert manifest['run_id'] == manifest['origin_run'] == run_id
-        assert manifest['rule_version'] == 'theatre-1.0.0'
+        assert manifest['rule_version'] == 'theatre-1.1.0'
         assert [row['sha256'] for row in manifest['inputs']] == [checksum(raw) for raw in files.values()]
         assert response.headers['content-disposition'] == f'attachment; filename="theatre-{run_id}.zip"'
 
@@ -36,7 +36,7 @@ def test_export_keeps_leading_zero_and_negative_cents(client):
     with archive:
         rows = list(csv.DictReader(io.StringIO(archive.read('evidence/refunds.csv').decode('utf-8-sig'))))
         assert [(row['ticket'], row['reversal_cents']) for row in rows] == [
-            ('00107', '-1000'), ('00108', '-2000'), ('00116', '-250'), ('00107', '-2333'),
+            ('00107', '-1000'), ('00108', '-2000'), ('00116', '-250'), ('00107', '-2333'), ('00107', '-5000'),
         ]
 
 
@@ -70,3 +70,14 @@ def test_text_cells_guard_formula_start_without_touching_money():
     data = make_csv([{'note': ' =1+1', 'reversal_cents': -1000}], ('note', 'reversal_cents'))
     row, = csv.DictReader(io.StringIO(data.decode('utf-8-sig')))
     assert row == {'note': "' =1+1", 'reversal_cents': '-1000'}
+
+
+def test_refund_shares_member_and_csv_voucher_are_consistent(client):
+    _, _, archive = open_evidence(client)
+    with archive:
+        shares = csv.DictReader(io.StringIO(archive.read('evidence/refund-shares.csv').decode('utf-8-sig')))
+        by_key = {(row['refund_id'], row['show']): row for row in shares}
+        assert by_key[('R107-WHOLE', 'A-LAKE')]['reversal_cents'] == '-2500'
+        assert by_key[('R107-WHOLE', 'A-LAKE')]['whole_order'] == 'True'
+        voucher = client.get('/api/evidence/sample/refunds.csv').text.lstrip('\ufeff')
+        assert voucher.splitlines()[1:] == archive.read('evidence/refund-shares.csv').decode('utf-8-sig').splitlines()[1:]

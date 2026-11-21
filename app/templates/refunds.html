@@ -1,0 +1,57 @@
+{% if funding.refund_orders %}
+<section class="panel refund-orders" aria-labelledby="refund-orders-title" id="refund-orders">
+  <div class="panel__head">
+    <div class="evidence-title"><h2 id="refund-orders-title">整单退款落场</h2><span>{{ funding.refund_orders | length }} 笔 · {{ manifest.publication_id[:13] }}</span></div>
+    <a class="btn btn--quiet" href="/api/evidence/{{ manifest.run_id }}/refunds.csv" download>本期退款凭证 <span aria-hidden="true">↓</span></a>
+  </div>
+  <div class="evidence-scroll">
+    <table class="ledger evidence-table refund-table" aria-label="整单退款按场落点">
+      <thead><tr><th scope="col">退款单 / 票码</th><th scope="col">演出 / 场馆</th><th scope="col" class="num">落场冲正 ¥</th><th scope="col" class="num">原分账 ¥</th><th scope="col" class="num">场次余限 ¥</th></tr></thead>
+      <tbody>
+      {% for order in funding.refund_orders %}
+        <tr class="refund-order">
+          <th scope="row"><strong>{{ order.refund_id }}</strong><small>{{ order.ticket }} · 整单 {{ order.refunded_at }}</small></th>
+          <td colspan="2"><span class="state state--warn">渠道未指明场次，按原分账比例落场</span></td>
+          <td class="num" colspan="2">冲正 {{ order.refunded_cents | money }}</td>
+        </tr>
+        {% for line in order.lines %}
+        <tr class="refund-line">
+          <td class="num"><code>{{ line.show }}</code></td>
+          <td><span title="{{ line.title }}">{{ line.title }}</span><small>{{ line.venue }}</small></td>
+          <td class="num">{{ line.reversal_cents | money }}</td>
+          <td class="num">{{ line.cap_cents | money }}</td>
+          <td class="num">{{ line.remaining_cents | money }}</td>
+        </tr>
+        {% endfor %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="ledger-notes"><span>每场累计冲正不超过该场原分账，超额只在仍有余量的场次间按原比例再分</span><span>待追回 <strong class="num">¥{{ funding.totals.clawback_cents | default(0) | money }}</strong></span></div>
+</section>
+{% endif %}
+<section class="panel venue-settlement" aria-labelledby="venue-title">
+  <div class="panel__head">
+    <div class="evidence-title"><h2 id="venue-title">各馆净应收与待追回</h2><span>净应收 = 原分账 − 冲正 − 未结</span></div>
+    <a class="btn btn--quiet" href="/api/reconcile/{{ manifest.run_id }}?view=venues" target="_blank" rel="noopener">场馆明细</a>
+  </div>
+  <div class="evidence-scroll">
+    <table class="ledger evidence-table" aria-label="按场馆净应收与待追回">
+      <thead><tr><th scope="col">场馆</th><th scope="col" class="num">场次</th><th scope="col" class="num">原分账 ¥</th><th scope="col" class="num">冲正 ¥</th><th scope="col" class="num">净应收 ¥</th><th scope="col" class="num">待追回 ¥</th></tr></thead>
+      <tbody>
+      {% for row in funding.venues %}
+        <tr data-venue-row="{{ row.venue }}">
+          <th scope="row"><span title="{{ row.venue }}">{{ row.venue }}</span></th>
+          <td class="num">{{ row.shows }}</td>
+          <td class="num">{{ row.allocated_cents | money }}</td>
+          <td class="num">{{ (-row.refunded_cents) | money }}</td>
+          <td class="num">{{ row.payable_cents | money }}</td>
+          <td class="num">{{ row.clawback_cents | default(0) | money }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot><tr><th scope="row">场馆合计</th><td class="num">—</td><td class="num">{{ funding.totals.allocated_cents | money }}</td><td class="num">{{ (-funding.totals.refunded_cents) | money }}</td><td class="num">{{ funding.totals.payable_cents | money }}</td><td class="num">{{ funding.totals.clawback_cents | default(0) | money }}</td></tr></tfoot>
+    </table>
+  </div>
+  <div class="ledger-notes"><span>净应收只计正常场次的有效核销</span><span>待追回为已演出并已结算场次被整单退款冲回、需向该馆收回的金额</span></div>
+</section>

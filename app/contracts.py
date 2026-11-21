@@ -26,6 +26,13 @@ def key(value):
     return value
 
 
+def optional_key(value):
+    """空值或哨兵值表示未指定该维度（如渠道整单退款未回传场次）。"""
+    if value.strip().upper() in SENTINELS:
+        return None
+    return key(value)
+
+
 def timestamp(value):
     value = text(value)
     if not TIME.fullmatch(value):

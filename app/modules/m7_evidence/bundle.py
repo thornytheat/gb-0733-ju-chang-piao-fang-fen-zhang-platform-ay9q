@@ -3,12 +3,15 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from app.manifest import canonical, checksum
 from app.modules.m7_evidence.csv_out import make_csv
+from app.modules.m7_evidence.voucher import refund_allocation_rows
 from app.reasons import REASONS
 
 ORIGIN = ('source', 'line', 'end_line', 'raw')
 ALLOCATION = ('ticket', 'show', 'venue', 'weight', 'allocated_cents', 'floor_cents', 'remainder', 'denominator',
               'rank', 'extra_cents', 'sale_line', 'right_line', 'show_line')
 MONEY = ('allocated_cents', 'refunded_cents', 'net_cents', 'payable_cents', 'unsettled_cents')
+REFUND_SHARE = ('refund_id', 'ticket', 'refunded_at', 'whole_order', 'refunded_cents', 'show', 'title', 'venue',
+                'reversal_cents', 'cap_cents', 'cumulative_cents', 'remaining_cents')
 
 
 def evidence_tables(snapshot):
@@ -27,11 +30,12 @@ def evidence_tables(snapshot):
                                              'publication_id', 'right_line', 'show_line', 'original_cents',
                                              'used_cents', 'requested_cents', 'reversal_cents',
                                              'cumulative_cents', 'remaining_cents', *ORIGIN)),
+        'refund-shares.csv': (refund_allocation_rows(snapshot), REFUND_SHARE),
         'settlement.csv': (accounts['ledger'], (*ALLOCATION, 'refunded_cents', 'net_cents', 'payable_cents',
                                                'unsettled_cents', 'code', 'scan_id', 'scan_line', 'cancelled_at')),
         'show-totals.csv': (accounts['shows'], ('show', 'title', 'venue', 'cancelled_at', 'scan_count', 'shares',
-                                               *MONEY, 'gap_cents', 'difference_cents')),
-        'venue-totals.csv': (accounts['venues'], ('venue', 'shows', 'scan_count', *MONEY)),
+                                               *MONEY, 'clawback_cents', 'gap_cents', 'difference_cents')),
+        'venue-totals.csv': (accounts['venues'], ('venue', 'shows', 'scan_count', *MONEY, 'clawback_cents')),
         'ticket-totals.csv': (accounts['tickets'], ('ticket', 'sale_line', 'paid_cents', 'refunded_cents',
                                                    'net_cents', 'payable_cents', 'unsettled_cents', 'difference_cents')),
         'source-counts.csv': (accounts['sources'], ('source', 'encoding', 'status', 'rows', 'headers', 'blank',
